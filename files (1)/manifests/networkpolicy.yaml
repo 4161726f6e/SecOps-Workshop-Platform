@@ -1,0 +1,51 @@
+# NOTE: Replace ANALYST_LAN_CIDR with your analyst network (e.g. 192.168.1.0/24)
+#       Replace PLAYER_LAN_CIDR with your player network (e.g. 10.0.0.0/24)
+#       install_02_platform.py --lan-cidr will patch this automatically.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: analyst
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-lan-ingress
+  namespace: analyst
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: ANALYST_LAN_CIDR
+    - ipBlock:
+        cidr: PLAYER_LAN_CIDR
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: analyst
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: analyst
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: analyst
